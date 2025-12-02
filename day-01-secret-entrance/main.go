@@ -38,16 +38,22 @@ func main() {
 
 		switch dir {
 		case "L":
-			current = (current - steps + dialSize) % dialSize
+			for i := 1; i <= steps; i++ {
+				current = (current - 1 + dialSize) % dialSize
+				if current == 0 {
+					passZeroCount++
+				}
+			}
 		case "R":
-			current = (current + steps) % dialSize
+			for i := 1; i <= steps; i++ {
+				current = (current + 1) % dialSize
+				if current == 0 {
+					passZeroCount++
+				}
+			}
 		default:
 			fmt.Fprintf(os.Stderr, "Direção inválida na linha: %s\n", line)
 			continue
-		}
-
-		if current == 0 {
-			passZeroCount++
 		}
 	}
 
