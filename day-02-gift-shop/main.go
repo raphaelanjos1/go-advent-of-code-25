@@ -68,11 +68,32 @@ func main() {
 
 func isInvalidID(n int) bool {
 	s := strconv.Itoa(n)
+	l := len(s)
 
-	if len(s)%2 != 0 {
-		return false
+	for size := 1; size <= l/2; size++ {
+		if l%size != 0 {
+			continue
+		}
+
+		reps := l / size
+		if reps < 2 {
+			continue
+		}
+
+		pattern := s[:size]
+		ok := true
+
+		for i := size; i < l; i += size {
+			if s[i:i+size] != pattern {
+				ok = false
+				break
+			}
+		}
+
+		if ok {
+			return true
+		}
 	}
 
-	mid := len(s) / 2
-	return s[:mid] == s[mid:]
+	return false
 }
