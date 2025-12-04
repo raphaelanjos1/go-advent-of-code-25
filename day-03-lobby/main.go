@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const digitsToChoose = 12
+
 func main() {
 	file, err := os.Open("input.txt")
 	if err != nil {
@@ -24,13 +26,13 @@ func main() {
 			continue
 		}
 
-		maxBank, err := maxBankJoltage(line)
+		maxBank, err := maxBankJoltageK(line, digitsToChoose)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Erro na linha %q: %v\n", line, err)
 			continue
 		}
 
-		total += int64(maxBank)
+		total += maxBank
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -41,15 +43,14 @@ func main() {
 	fmt.Println(total)
 }
 
-func maxBankJoltage(s string) (int, error) {
+func maxBankJoltageK(s string, k int) (int64, error) {
 	s = strings.TrimSpace(s)
-	if len(s) < 2 {
-		return 0, fmt.Errorf("banco com menos de 2 baterias")
+	n := len(s)
+	if n < k {
+		return 0, fmt.Errorf("banco com apenas %d dígitos, mas preciso de %d", n, k)
 	}
 
-	n := len(s)
 	digits := make([]int, n)
-
 	for i := 0; i < n; i++ {
 		if s[i] < '0' || s[i] > '9' {
 			return 0, fmt.Errorf("caractere inválido %q", s[i])
@@ -57,25 +58,25 @@ func maxBankJoltage(s string) (int, error) {
 		digits[i] = int(s[i] - '0')
 	}
 
-	sufMax := make([]int, n)
-	sufMax[n-1] = digits[n-1]
-	for i := n - 2; i >= 0; i-- {
-		if digits[i] > sufMax[i+1] {
-			sufMax[i] = digits[i]
-		} else {
-			sufMax[i] = sufMax[i+1]
+	toRemove := n - k
+	stack := make([]int, 0, n)
+
+	for _, d := range digits {
+		for toRemove > 0 && len(stack) > 0 && stack[len(stack)-1] < d {
+			stack = stack[:len(stack)-1]
+			toRemove--
 		}
+		stack = append(stack, d)
 	}
 
-	maxVal := -1
-	for i := 0; i < n-1; i++ {
-		tens := digits[i]
-		units := sufMax[i+1]
-		val := tens*10 + units
-		if val > maxVal {
-			maxVal = val
-		}
+	if len(stack) > k {
+		stack = stack[:k]
 	}
 
-	return maxVal, nil
+	var val int64
+	for i := 0; i < k; i++ {
+		val = val*10 + int64(stack[i])
+	}
+
+	return val, nil
 }
