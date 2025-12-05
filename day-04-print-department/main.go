@@ -17,14 +17,14 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	var grid []string
+	var grid [][]byte
 
 	for scanner.Scan() {
 		line := strings.TrimRight(scanner.Text(), "\r\n")
 		if strings.TrimSpace(line) == "" {
 			continue
 		}
-		grid = append(grid, line)
+		grid = append(grid, []byte(line))
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -37,44 +37,65 @@ func main() {
 		return
 	}
 
+	totalRemoved := simulateRemovals(grid)
+	fmt.Println(totalRemoved)
+}
+
+func simulateRemovals(grid [][]byte) int {
 	rows := len(grid)
-	accessible := 0
 
 	dirs := [8][2]int{
 		{-1, -1}, {-1, 0}, {-1, 1},
-		{0, -1} /*{0,0}*/, {0, 1},
+		{0, -1}, {0, 1},
 		{1, -1}, {1, 0}, {1, 1},
 	}
 
-	for i := 0; i < rows; i++ {
-		cols := len(grid[i])
-		for j := 0; j < cols; j++ {
-			if grid[i][j] != '@' {
-				continue
-			}
+	totalRemoved := 0
 
-			neighbors := 0
+	for {
+		var toRemove [][2]int
 
-			for _, d := range dirs {
-				ni := i + d[0]
-				nj := j + d[1]
-
-				if ni < 0 || ni >= rows {
+		for i := 0; i < rows; i++ {
+			cols := len(grid[i])
+			for j := 0; j < cols; j++ {
+				if grid[i][j] != '@' {
 					continue
 				}
-				if nj < 0 || nj >= len(grid[ni]) {
-					continue
-				}
-				if grid[ni][nj] == '@' {
-					neighbors++
-				}
-			}
 
-			if neighbors < 4 {
-				accessible++
+				neighbors := 0
+
+				for _, d := range dirs {
+					ni := i + d[0]
+					nj := j + d[1]
+
+					if ni < 0 || ni >= rows {
+						continue
+					}
+					if nj < 0 || nj >= len(grid[ni]) {
+						continue
+					}
+					if grid[ni][nj] == '@' {
+						neighbors++
+					}
+				}
+
+				if neighbors < 4 {
+					toRemove = append(toRemove, [2]int{i, j})
+				}
 			}
 		}
+
+		if len(toRemove) == 0 {
+			break
+		}
+
+		for _, p := range toRemove {
+			i, j := p[0], p[1]
+			grid[i][j] = '.'
+		}
+
+		totalRemoved += len(toRemove)
 	}
 
-	fmt.Println(accessible)
+	return totalRemoved
 }
