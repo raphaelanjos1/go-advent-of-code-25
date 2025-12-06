@@ -63,31 +63,13 @@ func main() {
 	}
 
 	merged := mergeIntervals(intervals)
-	freshCount := 0
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			continue
-		}
-
-		id, err := strconv.Atoi(line)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "ID inválido %q\n", line)
-			os.Exit(1)
-		}
-
-		if isFresh(merged, id) {
-			freshCount++
-		}
+	var totalIDs int64
+	for _, in := range merged {
+		totalIDs += int64(in.end - in.start + 1)
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "Erro na leitura: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println(freshCount)
+	fmt.Println(totalIDs)
 }
 
 func mergeIntervals(intervals []Interval) []Interval {
@@ -104,6 +86,7 @@ func mergeIntervals(intervals []Interval) []Interval {
 			merged = append(merged, cur)
 			continue
 		}
+
 		last := &merged[len(merged)-1]
 
 		if cur.start <= last.end+1 {
@@ -114,21 +97,6 @@ func mergeIntervals(intervals []Interval) []Interval {
 			merged = append(merged, cur)
 		}
 	}
-	return merged
-}
 
-func isFresh(intervals []Interval, id int) bool {
-	lo, hi := 0, len(intervals)-1
-	for lo <= hi {
-		mid := (lo + hi) / 2
-		in := intervals[mid]
-		if id < in.start {
-			hi = mid - 1
-		} else if id > in.end {
-			lo = mid + 1
-		} else {
-			return true
-		}
-	}
-	return false
+	return merged
 }
